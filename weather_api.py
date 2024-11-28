@@ -54,11 +54,12 @@ def get_weather(city):
 
     weather_api = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{city}?unitGroup=metric&include=days&key={api_key}&contentType=json"
     key = f"location:{city}"
-    response = requests.get(weather_api)
-    if response.status_code == 200:
+    try:
+        response = requests.get(weather_api)
+        response.raise_for_status()  # Raise an error for HTTP codes >= 400
         data = response.json()
-    else:
-        return "No data"
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Failed to fetch weather data: {str(e)}"}
     weather_data = parse_weather_data(data)
     dict_data = json.dumps(weather_data)
     r.set(key, dict_data, ex=12 * 60 * 60)
